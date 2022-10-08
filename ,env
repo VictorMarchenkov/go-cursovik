@@ -1,0 +1,5 @@
+PSQL_USER=admin
+PSQL_PASS=test
+PSQL_DB_NAME=admin
+PSQL_PORT=5432
+PRIV_KEY=jk21*!mas@

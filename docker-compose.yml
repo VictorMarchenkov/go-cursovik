@@ -1,0 +1,57 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: "admin"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "test"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      #      - ../2. Init Database:/docker-entrypoint-initdb.d
+      - ./db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # start_period: 40s
+
+
+
+  backend:
+    restart: always
+    container_name: webbackend
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    ports:
+      - "3000:3000"
+#    deploy:
+#      replicas: 2
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:8080"
+    depends_on:
+      - backend
+      - frontend
+
+  frontend:
+    restart: always
+    container_name: webfrontend
+    build:
+      context: .
+      dockerfile: view/Dockerfile
+    ports:
+      - "3002:3002"
+    depends_on:
+      - backend
